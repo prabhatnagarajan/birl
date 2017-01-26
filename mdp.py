@@ -5,3 +5,6 @@ class MDP:
 		self.transitions = transitions
 		num_actions = np.shape(transitions)[1]
 		self.rewards = rewards
+class MDP-R
+	def __init(self, transitions):
+		self.transitions = transitions

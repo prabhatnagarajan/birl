@@ -3,6 +3,7 @@ import numpy as np
 import pygame as pg
 from math import sqrt
 import math
+import decimal
 
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
@@ -28,8 +29,8 @@ AGENTCOLOR = (255, 255, 102)
 class GridWorld:
 	def __init__(self, mdp):
 		self.mdp = mdp
-		self.pixelx = 800
-		self.pixely = 800
+		self.pixelx = 700
+		self.pixely = 700
 		self.num_states = np.shape(self.mdp.transitions)[0]
 		self.height = int(math.ceil(sqrt(self.num_states)))
 		self.width = int(sqrt(np.shape(self.mdp.transitions)[0]))
@@ -163,18 +164,42 @@ class GridWorld:
 		return (row, col)
 
 	def get_state_value(self, state_tuple):
-		print state_tuple
 		return state_tuple[0] * self.rows + state_tuple[1]
 
 	def get_next_state(self, state, action):
 		for s in range(np.shape(self.mdp.transitions)[0]):
-			print str(self.mdp.transitions[state][action][s])
-			print "done"
 			if (self.mdp.transitions[state][action][s] == 1):
 				return s
 				break
 
-	def record(self, num_episodes):
+	def draw_rewards(self):
+		block_size_y = (self.pixely - self.height * 2)/self.height
+		block_size_x = (self.pixelx - self.width * 2)/self.width
+		font_size = (block_size_x * block_size_y)/800
+		for row in range(self.height):
+			for col in range(self.width):
+				state = self.get_state_value((row, col))
+				FONT = pg.font.SysFont('monospace',font_size) #SysFont creates a font object from available pygame fonts
+				color = RED
+				if (self.mdp.rewards[state] == 0):
+					color = BLACK
+				elif (self.mdp.rewards[state] > -1):
+					color = BLUE
+				str_reward = str(decimal.Decimal(str(self.mdp.rewards[state])).quantize(decimal.Decimal(10) ** -2))
+				SURFACEFONT = FONT.render('' + str_reward, True, color, WHITE) #True is for anti-aliasing, looks better when true 
+				if (self.goal == (row, col)):
+					SURFACEFONT = FONT.render('' + str_reward, True, color, GOALCOLOR) #True is for anti-aliasing, looks better when true
+				elif (self.start == (row, col)):
+					SURFACEFONT = FONT.render('' + str_reward, True, color, STARTCOLOR)
+				SURFACER = SURFACEFONT.get_rect() #meaning SURFACER will gain rectangular values
+				centerx = col * block_size_x + block_size_x/2 + col * 2
+				centery = row * block_size_y + block_size_y/2 + row * 2
+				SURFACER.center = (centerx, centery)
+				self.screen.blit(SURFACEFONT, SURFACER)
+
+	def record_demo(self):
+		#list of recordings
+		demo = list()
 		pg.init()
 		self.screen = pg.display.set_mode((self.pixely, self.pixelx))
 		pg.display.set_caption("Gridworld")
@@ -191,12 +216,12 @@ class GridWorld:
 	    # --- Drawing code should go here
 		self.draw_agent(self.get_state_tuple(state))
 		self.draw_boxes()
-		#self.draw_rewards()
+		self.draw_rewards()
 		pg.display.flip()
-		#self.recording.append(self.start)
+		#add starting state to the demonstration
+		demo.append(self.start)
 		reward = 0.0
 		while not done:
-			#action_val = GridWorldAction.right
 		    # --- Main event loop
 			cont = True	    	
 			while cont:
@@ -224,9 +249,9 @@ class GridWorld:
 						break
 		 
 		    # --- Game logic should go here
-			print "state " + str(state)
 			state = self.get_next_state(state, action_val)
-			#self.recording.append(action_val.value)
+			#add action to demonstration
+			demo.append(action_val)
 
 		    # --- Screen-clearing code goes here
 		 
@@ -240,20 +265,27 @@ class GridWorld:
 		    # --- Drawing code should go here
 			self.draw_agent(self.get_state_tuple(state))
 			self.draw_boxes()
-			#self.draw_rewards()
+			self.draw_rewards()
 		    # --- Go ahead and update the screen with what we've drawn.
-			#reward += self.reward_mat[agent.get_loc()]
-			#self.recording.append(agent.get_loc())
+			reward += self.mdp.rewards[state]
+			#add new state to demonstration
+			demo.append(state)
 			delay = 100
-			#if agent.get_loc() == self.goal:
-			#	delay = 1000
-			#	done = True
-				#save rewards
-				#save recordings
+			if state == self.goal:
+				delay = 1000
+				done = True
+
 			pg.display.flip()
 		    # --- Limit to 60 frames per second
 			clock.tick(60)
 			pg.time.delay(delay)
 			# wait
 		pg.quit()
-		#return (reward, self.recording)
+		return (reward, demo)
+
+	def record(self, num_episodes):
+		demos = list()
+		for i in range(num_episodes):
+			demo = self.record_demo()
+			demos.append(demo)
+		return demos

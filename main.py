@@ -49,14 +49,16 @@ def initialize_gridworld(width, height):
 	return trans_mat
 
 def initialize_rewards(dims):
-	weights = np.random.normal(3, 1, dims)
+	weights = np.random.normal(0, 0.25, dims)
 	rewards = dict()
 	for i in range(36):
 		rewards[i] = np.dot(weights, np.random.normal(-3, 1, dims))
 		#Give goal state higher value
 	rewards[35] = 10
+	return rewards
 
 if __name__ == '__main__':
 	mdp = MDP(initialize_gridworld(6, 6), initialize_rewards(5))
 	thing = GridWorld(mdp)
-	thing.record(5)
+	demos = thing.record(2)
+	print demos
