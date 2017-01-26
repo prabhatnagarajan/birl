@@ -2,6 +2,7 @@
 import gridworld
 from gridworld import GridWorld
 from mdp import MDP
+from mdp import MDPR
 import numpy as np
 
 def initialize_gridworld(width, height):
@@ -58,7 +59,9 @@ def initialize_rewards(dims):
 	return rewards
 
 if __name__ == '__main__':
-	mdp = MDP(initialize_gridworld(6, 6), initialize_rewards(5))
+	transitions = initialize_gridworld(6, 6)
+	mdp = MDP(transitions, initialize_rewards(5))
 	thing = GridWorld(mdp)
 	demos = thing.record(2)
 	print demos
+	mdpr = MDPR(transitions)
