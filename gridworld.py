@@ -28,8 +28,8 @@ AGENTCOLOR = (255, 255, 102)
 class GridWorld:
 	def __init__(self, mdp):
 		self.mdp = mdp
-		self.pixelx = 1000
-		self.pixely = 1000
+		self.pixelx = 800
+		self.pixely = 800
 		self.num_states = np.shape(self.mdp.transitions)[0]
 		self.height = int(math.ceil(sqrt(self.num_states)))
 		self.width = int(sqrt(np.shape(self.mdp.transitions)[0]))
@@ -157,15 +157,21 @@ class GridWorld:
 		centery = row * block_size_y + block_size_y/2 + row * 2
 		pg.draw.circle(self.screen, AGENTCOLOR, (centerx, centery), (min(block_size_y, block_size_x)/2) * 2 / 3, 0) 
 
-	def get_loc_value(self, state):
+	def get_state_tuple(self, state):
 		col = state % self.cols
 		row = state/self.rows
 		return (row, col)
 
+	def get_state_value(self, state_tuple):
+		print state_tuple
+		return state_tuple[0] * self.rows + state_tuple[1]
+
 	def get_next_state(self, state, action):
 		for s in range(np.shape(self.mdp.transitions)[0]):
-			if (self.mdp.transitions[state, action, s] == 1):
-				return self.get_loc_value(s)
+			print str(self.mdp.transitions[state][action][s])
+			print "done"
+			if (self.mdp.transitions[state][action][s] == 1):
+				return s
 				break
 
 	def record(self, num_episodes):
@@ -180,15 +186,15 @@ class GridWorld:
 			    # If you want a background image, replace this clear with blit'ing the
 	    # background image.
 		self.screen.fill(WHITE)
-	 
+		#starting state
+	 	state = 0
 	    # --- Drawing code should go here
-		#self.draw_agent(agent)
+		self.draw_agent(self.get_state_tuple(state))
 		self.draw_boxes()
 		#self.draw_rewards()
 		pg.display.flip()
 		#self.recording.append(self.start)
 		reward = 0.0
-		state = 0
 		while not done:
 			#action_val = GridWorldAction.right
 		    # --- Main event loop
@@ -218,6 +224,7 @@ class GridWorld:
 						break
 		 
 		    # --- Game logic should go here
+			print "state " + str(state)
 			state = self.get_next_state(state, action_val)
 			#self.recording.append(action_val.value)
 
@@ -231,7 +238,7 @@ class GridWorld:
 			self.screen.fill(WHITE)
 		 
 		    # --- Drawing code should go here
-			self.draw_agent(state)
+			self.draw_agent(self.get_state_tuple(state))
 			self.draw_boxes()
 			#self.draw_rewards()
 		    # --- Go ahead and update the screen with what we've drawn.
