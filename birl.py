@@ -1,61 +1,71 @@
 #!/usr/bin/env python
 import numpy as np
+from copy import deepcopy
+import random
 
-def birl(mdpr, demos):
-	print "throughput"
-
-
-#probability distribution P, mdp M, step size delta, and perhaps a previous policy
-def PolicyWalk(P, mdp, delta):
-	# Step 1 - Pick a random reward vector
-	print "Selecting Random vector"
-	#TODO change how I'm generating random reward vector
-	rewards = np.zeros(np.shape(mdp.transitions)[0])
-	# Step 2 - Policy Iteration
-	policy = policy_iteration(mdp)[0]
-	# Step 3
-	# Step 3a
-	rewards_walk = np.zeros(np.shape(mdp.transitions)[0])
-	# Step 3b
-	mdp.rewards = reward_walk
-	Q = policy_evaluation(mdp, policy)
-	# Step 3c
+def birl(mdpr, demos, iterations, step_size, r_max):
 	
 
 
-#Policy Iteration from Sutton and Barto
-#assumes discount factor of 0.99
-def policy_iteration(mdp, policy=None):
-	#initialization
-	if policy = None
-		policy = np.zeros(np.shape(mdp.transitions)[0])
-	value = np.zeros(np.shape(mdp.transitions)[0])
+#probability distribution P, mdp M, step size delta, and perhaps a previous policy
+def PolicyWalk(mdp, step_size, iterations, r_max):
+	# Step 1 - Pick a random reward vector
+	mdp.rewards = select_random_reward(mdp, step_size, r_max)
+	# Step 2 - Policy Iteration
+	policy = mdp.policy_iteration(mdp)[0]
+	# Step 3
+	for i in range(iterations):	
+		proposed_mdp = deepcopy(mdp)
+		# Step 3a - Pick a reward vector uniformly at random from the neighbors of R
+		mcmc_step(proposed_mdp, step_size, r_max)
+		#Step 3b - Compute Q for policy under new reward
+		Q = policy_evaluation(proposed_mdp, policy)
+		# Step 3c
+		#if policy is suboptimal then proceed to 3ci, 3cii, 3ciii
+		if suboptimal(policy, Q):
+			#3ci, do policy iteration under proposed reward function
+			proposed_policy = proposed_mdp.policy_iteration(policy=policy)
+			#TODO change fraction
+			fraction = 0.5
+			if (random.random() < min(1, fraction)):
+				mdp.rewards = proposed_mdp.rewards
+				policy = proposed_policy
+		else:
+			#TODO: Change fraction
+			fraction = 0.5
+			if (random.random() < min(1, fraction)):
+				mdp.rewards = proposed_mdp.rewards
 
-	policy_stable = False
-	while not policy_stable:
-		#policy evaluation
-		delta = float('inf')
-		while delta > 0.01:
-			delta = 0
-			#for each s in S
-			for s in range(np.shape(mdp.transitions)[0]):
-				#v = V(s)
-				v = value[s]
-				action = policy[s]
-				#V(s) = sum_s',r P(s',r|s pi(s))[r + YV(s')]
-				value[s] = np.sum(np.add(np.dot(mdp.transitions(s,action,:), mdp.rewards),np.dot(mdp.transitions(s,action,:), np.dot(np.full((len(value)), 0.99),value))))
-				delta = max(delta, abs(v - value[s]))
-		#policy improvement
-		policy_stable = True
-		for s in range(np.shape(mdp.transitions)[0]):
-			old_action = policy[s]
-			action_vals = [np.sum(np.add(np.dot(mdp.transitions(s,action,:), mdp.rewards),np.dot(mdp.transitions(s,action,:), np.dot(np.full((len(value)), 0.99),value)))) for action in range(np.shape(mdp.transitions)[0])]
-			policy[s] = action_vals.index(max(action_vals))
-			if not old_action == policy[s]:
-				policy_stable = False
+def mcmc_step(mdp, step_size, r_max):
+	 index = random.randint(0, np.shape(mdp.transitions)[0] - 1)
+	 direction = pow(-1, random.randint(0, 1))
+	 '''
+	 move reward at index either +step_size or -step_size, if reward
+	 is too large, move it to r_max, and if it too small, move to -_rmax
+	 '''
+	 mdp.rewards[index] = max(min(mdp.rewards[index] + (direction * step_size), r_max),-r_max)
 
-	return (policy, value)
+def suboptimal(policy, Q):
+	#for every state
+	for s in range(np.shape(Q)[0]):
+		for a in range(np.shape(Q)[1]):
+			if (Q[s, policy[s]] < Q[s,a]):
+				return True
+	return False
 
+#Generates a random reward vector in the grid of reward vectors
+def select_random_reward(mdp, step_size, r_max):
+	rewards = np.random.uniform(-r_max, r_max,np.shape(mdp.transitions)[0])
+	#move theese random rewards to a gridpoint
+	for i in range(len(rewards)):
+		mod = rewards[i] % step_size
+		if mod > (step_size/2):
+			rewards[i] = rewards[i] + (step_size - mod)
+		else:
+			rewards[i] = rewards[i] - mod
+	return rewards
+
+#TODO REMOVE from this file
 #Evaluates Q^pi(s,a, R)
 def policy_evaluation(mdp, policy):
 	q = np.zeros(np.shape(mdp.transitions)[0],np.shape(mdp.transitions)[1])
