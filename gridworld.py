@@ -222,6 +222,7 @@ class GridWorld:
 		demo.append(self.start)
 		reward = 0.0
 		while not done:
+			print done
 		    # --- Main event loop
 			cont = True	    	
 			while cont:
@@ -245,11 +246,13 @@ class GridWorld:
 							break
 					if event.type == pg.QUIT:
 						done = True
-						cont = False;
+						cont = False
+						print "QUIT"
 						break
 		 
 		    # --- Game logic should go here
 			state = self.get_next_state(state, action_val)
+			print state
 			#add action to demonstration
 			demo.append(action_val)
 
@@ -272,20 +275,27 @@ class GridWorld:
 			demo.append(state)
 			delay = 100
 			if state == self.goal:
+				print "At Goal"
 				delay = 1000
-				done = True
+				#pg.quit()
+				#done = True
 
 			pg.display.flip()
 		    # --- Limit to 60 frames per second
 			clock.tick(60)
 			pg.time.delay(delay)
+			print done
+			print "yoyoyoyoyo"
 			# wait
+		print "out of loop"
 		pg.quit()
 		return (reward, demo)
 
 	def record(self, num_episodes):
 		demos = list()
 		for i in range(num_episodes):
+			print "demo " + str(i)
 			demo = self.record_demo()
 			demos.append(demo)
+			print "Finished DEmo " + str(i)
 		return demos
