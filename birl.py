@@ -2,13 +2,17 @@
 import numpy as np
 from copy import deepcopy
 import random
+from scipy.misc import logsumexp
 
+#Demos is a dictionary of demonstration mapping to alpha (confidence)
+#step_size is the step size for MCMC
+#r_max is the maximum possible reward in the domain
 def birl(mdpr, demos, iterations, step_size, r_max):
-	
+	print "Do nothing"
 
 
 #probability distribution P, mdp M, step size delta, and perhaps a previous policy
-def PolicyWalk(mdp, step_size, iterations, r_max):
+def PolicyWalk(mdp, step_size, iterations, r_max, demos):
 	# Step 1 - Pick a random reward vector
 	mdp.rewards = select_random_reward(mdp, step_size, r_max)
 	# Step 2 - Policy Iteration
@@ -26,7 +30,7 @@ def PolicyWalk(mdp, step_size, iterations, r_max):
 			#3ci, do policy iteration under proposed reward function
 			proposed_policy = proposed_mdp.policy_iteration(policy=policy)
 			#TODO change fraction
-			fraction = 0.5
+			fraction = np.exp(compute_log_posterior(mdp, demos, Q) - compute_log_posterior(mdp, demos, Q))
 			if (random.random() < min(1, fraction)):
 				mdp.rewards = proposed_mdp.rewards
 				policy = proposed_policy
@@ -35,6 +39,27 @@ def PolicyWalk(mdp, step_size, iterations, r_max):
 			fraction = 0.5
 			if (random.random() < min(1, fraction)):
 				mdp.rewards = proposed_mdp.rewards
+
+#Demos comes in the form (actual reward, demo, confidence)
+def compute_log_posterior(mdp, demos, Q):
+	log_exp_val = 0
+	#go through each demo
+	for d in len(demos):
+		demo = demos[d][1]
+		confidence = demos[d][2]
+		#for each state action pair in the demo
+		for sa in demo:
+			normalizer = []
+			#add to the list of normalization terms
+			for a in range(np.shape(mdp.transitions)[0]):
+				normalizer.append(confidence * Q[s,a])
+			'''
+			We take the log of the normalizer, because we take exponent in the calling function,
+			which gets rid of the log, and leaves the sum of the exponents. Also, we subtract by the log
+			instead of dividing because subtracting logs can be rewritten as division
+			'''
+			log_exp_val = log_exp_val + confidence * Q[sa[0], sa[1]] - logsumexp(normalizer)
+	return log_exp_val
 
 def mcmc_step(mdp, step_size, r_max):
 	 index = random.randint(0, np.shape(mdp.transitions)[0] - 1)

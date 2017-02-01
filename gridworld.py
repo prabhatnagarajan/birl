@@ -197,7 +197,7 @@ class GridWorld:
 				SURFACER.center = (centerx, centery)
 				self.screen.blit(SURFACEFONT, SURFACER)
 
-	def record_demo(self):
+	def record_demo(self, confidence):
 		#list of recordings
 		demo = list()
 		pg.init()
@@ -212,17 +212,15 @@ class GridWorld:
 	    # background image.
 		self.screen.fill(WHITE)
 		#starting state
-	 	state = 0
+	 	state = self.start
 	    # --- Drawing code should go here
 		self.draw_agent(self.get_state_tuple(state))
 		self.draw_boxes()
 		self.draw_rewards()
 		pg.display.flip()
 		#add starting state to the demonstration
-		demo.append(self.start)
 		reward = 0.0
 		while not done:
-			print done
 		    # --- Main event loop
 			cont = True	    	
 			while cont:
@@ -247,14 +245,14 @@ class GridWorld:
 					if event.type == pg.QUIT:
 						done = True
 						cont = False
-						print "QUIT"
 						break
 		 
+		 	demo.append((state, action_val))
+
 		    # --- Game logic should go here
 			state = self.get_next_state(state, action_val)
-			print state
+
 			#add action to demonstration
-			demo.append(action_val)
 
 		    # --- Screen-clearing code goes here
 		 
@@ -272,30 +270,23 @@ class GridWorld:
 		    # --- Go ahead and update the screen with what we've drawn.
 			reward += self.mdp.rewards[state]
 			#add new state to demonstration
-			demo.append(state)
 			delay = 100
 			if state == self.goal:
-				print "At Goal"
 				delay = 1000
-				#pg.quit()
-				#done = True
+				done = True
 
 			pg.display.flip()
 		    # --- Limit to 60 frames per second
 			clock.tick(60)
 			pg.time.delay(delay)
-			print done
-			print "yoyoyoyoyo"
 			# wait
-		print "out of loop"
 		pg.quit()
-		return (reward, demo)
+		return (reward, demo, confidence)
 
 	def record(self, num_episodes):
 		demos = list()
+		confidence = 1.0
 		for i in range(num_episodes):
-			print "demo " + str(i)
-			demo = self.record_demo()
+			demo = self.record_demo(confidence)
 			demos.append(demo)
-			print "Finished DEmo " + str(i)
 		return demos
