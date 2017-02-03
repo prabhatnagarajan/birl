@@ -13,6 +13,7 @@ def birl(mdpr, demos, iterations, step_size, r_max):
 
 #probability distribution P, mdp M, step size delta, and perhaps a previous policy
 #Returns : MDP with the learned reward function
+#MASSIVE ASSUMPTION: CURRENTLY ASSUMES A UNIFORM PRIOR
 def PolicyWalk(mdp, step_size, iterations, r_max, demos):
 	# Step 1 - Pick a random reward vector
 	mdp.rewards = select_random_reward(mdp, step_size, r_max)
@@ -54,6 +55,7 @@ def PolicyWalk(mdp, step_size, iterations, r_max, demos):
 			if (random.random() < min(1, fraction)):
 				mdp.rewards = proposed_mdp.rewards
 				post_orig = post_new
+	#Step 4 - return the reward function (in our case, the MDP as well)
 	return mdp
 
 #Demos comes in the form (actual reward, demo, confidence)
