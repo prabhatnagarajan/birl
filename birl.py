@@ -12,11 +12,14 @@ def birl(mdpr, demos, iterations, step_size, r_max):
 
 
 #probability distribution P, mdp M, step size delta, and perhaps a previous policy
+#Returns : MDP with the learned reward function
 def PolicyWalk(mdp, step_size, iterations, r_max, demos):
 	# Step 1 - Pick a random reward vector
 	mdp.rewards = select_random_reward(mdp, step_size, r_max)
 	# Step 2 - Policy Iteration
 	policy = mdp.policy_iteration(mdp)[0]
+	#initialize an original posterior, will be useful later
+	post_orig = None
 	# Step 3
 	for i in range(iterations):	
 		proposed_mdp = deepcopy(mdp)
@@ -25,20 +28,33 @@ def PolicyWalk(mdp, step_size, iterations, r_max, demos):
 		#Step 3b - Compute Q for policy under new reward
 		Q = policy_evaluation(proposed_mdp, policy)
 		# Step 3c
+		if post_orig is None:
+			post_orig = compute_log_posterior(mdp, demos, policy_evaluation(policy))
 		#if policy is suboptimal then proceed to 3ci, 3cii, 3ciii
 		if suboptimal(policy, Q):
 			#3ci, do policy iteration under proposed reward function
 			proposed_policy = proposed_mdp.policy_iteration(policy=policy)
-			#TODO change fraction
-			fraction = np.exp(compute_log_posterior(mdp, demos, Q) - compute_log_posterior(mdp, demos, Q))
+			'''
+			Take fraction of posterior probability of proposed reward and policy over 
+			posterior probability of original reward and policy
+			'''
+			post_new = compute_log_posterior(proposed_mdp, demos, policy_evaluation(proposed_policy))
+			fraction = np.exp(post_new - post_orig)
 			if (random.random() < min(1, fraction)):
 				mdp.rewards = proposed_mdp.rewards
 				policy = proposed_policy
+				post_orig = post_new
 		else:
-			#TODO: Change fraction
-			fraction = 0.5
+			'''
+			Take fraction of the posterior probability of proposed reward under original policy over
+			posterior probability of original reward and original policy
+			'''
+			post_new = compute_log_posterior(proposed_mdp, demos, Q)
+			fraction = np.exp(post_new - post_orig)
 			if (random.random() < min(1, fraction)):
 				mdp.rewards = proposed_mdp.rewards
+				post_orig = post_new
+	return mdp
 
 #Demos comes in the form (actual reward, demo, confidence)
 def compute_log_posterior(mdp, demos, Q):
