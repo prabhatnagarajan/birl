@@ -7,8 +7,10 @@ from scipy.misc import logsumexp
 #Demos is a dictionary of demonstration mapping to alpha (confidence)
 #step_size is the step size for MCMC
 #r_max is the maximum possible reward in the domain
-def birl(mdpr, demos, iterations, step_size, r_max):
-	print "Do nothing"
+def birl(mdp, step_size, iterations, r_max, demos):
+	final_mdp = PolicyWalk(mdp, step_size, iterations, r_max, demos)
+	#Optimal deterministic policy
+	optimal_policy = final_mdp.policy_iteration()[0]
 
 
 #probability distribution P, mdp M, step size delta, and perhaps a previous policy
@@ -18,7 +20,7 @@ def PolicyWalk(mdp, step_size, iterations, r_max, demos):
 	# Step 1 - Pick a random reward vector
 	mdp.rewards = select_random_reward(mdp, step_size, r_max)
 	# Step 2 - Policy Iteration
-	policy = mdp.policy_iteration(mdp)[0]
+	policy = mdp.policy_iteration()[0]
 	#initialize an original posterior, will be useful later
 	post_orig = None
 	# Step 3
@@ -111,7 +113,7 @@ def select_random_reward(mdp, step_size, r_max):
 #TODO REMOVE from this file
 #Evaluates Q^pi(s,a, R)
 def policy_evaluation(mdp, policy):
-	q = np.zeros(np.shape(mdp.transitions)[0],np.shape(mdp.transitions)[1])
+	q = np.zeros(np.shape(mdp.transitions)[0:2])
 	delta = float('inf')
 	while (delta > 0.01):
 		for s in range(np.shape(mdp.transitions)[0]):
@@ -124,6 +126,12 @@ def policy_evaluation(mdp, policy):
 					qsaprime_sum = 0.0
 					for next_a in range(np.shape(mdp.transitions)[1]):
 						#assumes determinism
+						if np.isnan(policy[s]):
+							print "nan messed up"
+							exit()
+						if np.isnan(qsaprime_sum):
+							print "messed up"
+							exit()
 						qsaprime_sum = qsaprime_sum + 0.99 * (policy[s] == a) * q[s,a]
 					q_sum = q_sum + mdp.transitions[s,a,next_state] * (reward + qsaprime_sum)
 				q[s,a] = q_sum

@@ -4,6 +4,7 @@ from gridworld import GridWorld
 from mdp import MDP
 from mdp import MDPR
 import numpy as np
+from birl import *
 
 def initialize_gridworld(width, height):
 	# where 24 is a goal state that always transitions to a 
@@ -55,12 +56,14 @@ def initialize_rewards(dims, num_states):
 	for i in range(num_states):
 		rewards[i] = np.dot(weights, np.random.normal(-3, 1, dims))
 		#Give goal state higher value
-	rewards[num_states] = 10
+	rewards[num_states - 1] = 10
 	return rewards
 
 if __name__ == '__main__':
 	transitions = initialize_gridworld(6, 6)
 	mdp = MDP(transitions, initialize_rewards(5, 36))
 	thing = GridWorld(mdp)
-	demos = thing.record(2)
+	demos = thing.record(1)
 	print demos
+	policy = birl(mdp, 0.02, 200, 1.0, demos)
+	print "Finished BIRL"
