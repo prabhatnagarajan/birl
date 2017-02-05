@@ -32,7 +32,7 @@ def PolicyWalk(mdp, step_size, iterations, r_max, demos):
 		Q = policy_evaluation(proposed_mdp, policy)
 		# Step 3c
 		if post_orig is None:
-			post_orig = compute_log_posterior(mdp, demos, policy_evaluation(policy))
+			post_orig = compute_log_posterior(mdp, demos, policy_evaluation(mdp, policy))
 		#if policy is suboptimal then proceed to 3ci, 3cii, 3ciii
 		if suboptimal(policy, Q):
 			#3ci, do policy iteration under proposed reward function
@@ -41,7 +41,7 @@ def PolicyWalk(mdp, step_size, iterations, r_max, demos):
 			Take fraction of posterior probability of proposed reward and policy over 
 			posterior probability of original reward and policy
 			'''
-			post_new = compute_log_posterior(proposed_mdp, demos, policy_evaluation(proposed_policy))
+			post_new = compute_log_posterior(proposed_mdp, demos, policy_evaluation(proposed_mdp, proposed_policy))
 			fraction = np.exp(post_new - post_orig)
 			if (random.random() < min(1, fraction)):
 				mdp.rewards = proposed_mdp.rewards
@@ -64,15 +64,15 @@ def PolicyWalk(mdp, step_size, iterations, r_max, demos):
 def compute_log_posterior(mdp, demos, Q):
 	log_exp_val = 0
 	#go through each demo
-	for d in len(demos):
+	for d in range(len(demos)):
 		demo = demos[d][1]
 		confidence = demos[d][2]
 		#for each state action pair in the demo
 		for sa in demo:
 			normalizer = []
 			#add to the list of normalization terms
-			for a in range(np.shape(mdp.transitions)[0]):
-				normalizer.append(confidence * Q[s,a])
+			for a in range(np.shape(mdp.transitions)[1]):
+				normalizer.append(confidence * Q[sa[0],a])
 			'''
 			We take the log of the normalizer, because we take exponent in the calling function,
 			which gets rid of the log, and leaves the sum of the exponents. Also, we subtract by the log
@@ -113,9 +113,11 @@ def select_random_reward(mdp, step_size, r_max):
 #TODO REMOVE from this file
 #Evaluates Q^pi(s,a, R)
 def policy_evaluation(mdp, policy):
+	print "evaluating policy"
 	q = np.zeros(np.shape(mdp.transitions)[0:2])
 	delta = float('inf')
 	while (delta > 0.01):
+		delta = 0
 		for s in range(np.shape(mdp.transitions)[0]):
 			for a in range(np.shape(mdp.transitions)[1]):
 				q_val = q[s,a]
@@ -123,17 +125,10 @@ def policy_evaluation(mdp, policy):
 				for next_state in range(np.shape(mdp.transitions)[2]):
 					psas = mdp.transitions[s,a,next_state]
 					reward = mdp.rewards[next_state]
-					qsaprime_sum = 0.0
-					for next_a in range(np.shape(mdp.transitions)[1]):
-						#assumes determinism
-						if np.isnan(policy[s]):
-							print "nan messed up"
-							exit()
-						if np.isnan(qsaprime_sum):
-							print "messed up"
-							exit()
-						qsaprime_sum = qsaprime_sum + 0.99 * (policy[s] == a) * q[s,a]
-					q_sum = q_sum + mdp.transitions[s,a,next_state] * (reward + qsaprime_sum)
+					if (np.isnan(q_sum)):
+						print "NAN"
+						exit()
+					q_sum = q_sum + psas * reward + 0.99 * q[next_state, policy[next_state]]
 				q[s,a] = q_sum
 				delta = max(delta, abs(q_val - q[s,a]))
 	return q
