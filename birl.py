@@ -125,10 +125,7 @@ def policy_evaluation(mdp, policy):
 				for next_state in range(np.shape(mdp.transitions)[2]):
 					psas = mdp.transitions[s,a,next_state]
 					reward = mdp.rewards[next_state]
-					if (np.isnan(q_sum)):
-						print "NAN"
-						exit()
-					q_sum = q_sum + psas * reward + 0.99 * q[next_state, policy[next_state]]
+					q_sum = q_sum + psas * (reward + 0.99 * q[next_state, policy[next_state]])
 				q[s,a] = q_sum
 				delta = max(delta, abs(q_val - q[s,a]))
 	return q

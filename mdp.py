@@ -44,11 +44,14 @@ class MDP:
 
 		return (policy, value)
 
+
 	#Evaluates Q^pi(s,a, R)
 	def policy_evaluation(self, policy):
-		q = np.zeros(np.shape(self.transitions)[0],np.shape(self.transitions)[1])
+		print "evaluating policy"
+		q = np.zeros(np.shape(self.transitions)[0:2])
 		delta = float('inf')
 		while (delta > 0.01):
+			delta = 0
 			for s in range(np.shape(self.transitions)[0]):
 				for a in range(np.shape(self.transitions)[1]):
 					q_val = q[s,a]
@@ -56,15 +59,16 @@ class MDP:
 					for next_state in range(np.shape(self.transitions)[2]):
 						psas = self.transitions[s,a,next_state]
 						reward = self.rewards[next_state]
-						qsaprime_sum = 0.0
-						for next_a in range(np.shape(self.transitions)[1]):
-							#assumes determinism
-							qsaprime_sum = qsaprime_sum + 0.99 * (policy[s] == a) * q[s,a]
-						q_sum = q_sum + self.transitions[s,a,next_state] * (reward + qsaprime_sum)
+						if (np.isnan(q_sum)):
+							print "NAN"
+							exit()
+						q_sum = q_sum + psas * (reward + 0.99 * q[next_state, policy[next_state]])
 					q[s,a] = q_sum
 					delta = max(delta, abs(q_val - q[s,a]))
+					if np.isnan(delta):
+						print "NAN"
 		return q
-	#MDP\R
+
 class MDPR:
 	def __init__(self, transitions):
 		self.transitions = transitions
