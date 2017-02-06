@@ -32,6 +32,7 @@ def PolicyWalk(mdp, step_size, iterations, r_max, demos):
 		Q = policy_evaluation(proposed_mdp, policy)
 		# Step 3c
 		if post_orig is None:
+			print "computing log posterior"
 			post_orig = compute_log_posterior(mdp, demos, policy_evaluation(mdp, policy))
 		#if policy is suboptimal then proceed to 3ci, 3cii, 3ciii
 		if suboptimal(policy, Q):
@@ -41,7 +42,10 @@ def PolicyWalk(mdp, step_size, iterations, r_max, demos):
 			Take fraction of posterior probability of proposed reward and policy over 
 			posterior probability of original reward and policy
 			'''
+			print "computing new posterior"
+			print proposed_policy
 			post_new = compute_log_posterior(proposed_mdp, demos, policy_evaluation(proposed_mdp, proposed_policy))
+			print "done"
 			fraction = np.exp(post_new - post_orig)
 			if (random.random() < min(1, fraction)):
 				mdp.rewards = proposed_mdp.rewards
@@ -114,6 +118,7 @@ def select_random_reward(mdp, step_size, r_max):
 #Evaluates Q^pi(s,a, R)
 def policy_evaluation(mdp, policy):
 	print "evaluating policy"
+	print policy
 	q = np.zeros(np.shape(mdp.transitions)[0:2])
 	delta = float('inf')
 	while (delta > 0.01):
@@ -125,7 +130,10 @@ def policy_evaluation(mdp, policy):
 				for next_state in range(np.shape(mdp.transitions)[2]):
 					psas = mdp.transitions[s,a,next_state]
 					reward = mdp.rewards[next_state]
-					q_sum = q_sum + psas * (reward + 0.99 * q[next_state, policy[next_state]])
+					action = policy[next_state]
+					q_value = q[next_state, action]
+					q_sum = q_sum + psas * (reward + 0.99 * q_value)
+					#print policy
 				q[s,a] = q_sum
 				delta = max(delta, abs(q_val - q[s,a]))
 	return q
