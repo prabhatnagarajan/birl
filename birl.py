@@ -44,7 +44,8 @@ def PolicyWalk(mdp, step_size, iterations, r_max, demos):
 			'''
 			print "computing new posterior"
 			print proposed_policy
-			post_new = compute_log_posterior(proposed_mdp, demos, policy_evaluation(proposed_mdp, proposed_policy))
+			print "computing"
+			post_new = compute_log_posterior(proposed_mdp, demos, policy_evaluation(proposed_mdp, proposed_policy[0]))
 			print "done"
 			fraction = np.exp(post_new - post_orig)
 			if (random.random() < min(1, fraction)):

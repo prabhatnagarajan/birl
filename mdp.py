@@ -31,17 +31,20 @@ class MDP:
 					value[s] = np.sum(np.dot(self.transitions[s,action,:], np.add(self.rewards, np.dot(np.full(len(value),0.99), value))))
 					#value[s] = np.add(,np.dot(self.transitions(s,action,:), np.dot(np.full((len(value)), 0.99),value)))
 					delta = max(delta, abs(v - value[s]))
-				#policy improvement
-				policy_stable = True
-				for s in range(np.shape(self.transitions)[0]):
-					old_action = policy[s]
-					action_vals = np.zeros(np.shape(self.transitions)[0])
-					for action in range(np.shape(self.transitions)[1]):
-						action_vals[action] = np.sum(np.add(np.dot(self.transitions[s,action,:], self.rewards),np.dot(self.transitions[s,action,:], np.dot(np.full((len(value)), 0.99),value))))
-					policy[s] = np.argmax(action_vals)
-					if not old_action == policy[s]:
-						policy_stable = False
 
+			#policy improvement
+			policy_stable = True
+			for s in range(np.shape(self.transitions)[0]):
+				old_action = policy[s]
+				action_vals = np.zeros(np.shape(self.transitions)[0])
+				for action in range(np.shape(self.transitions)[1]):
+					action_vals[action] = np.sum(np.add(np.dot(self.transitions[s,action,:], self.rewards),np.dot(self.transitions[s,action,:], np.dot(np.full((len(value)), 0.99),value))))
+				policy[s] = np.argmax(action_vals)
+				if not old_action == policy[s]:
+					policy_stable = False
+		print "policy is"
+		print policy
+		print "returning"
 		return (policy, value)
 
 
