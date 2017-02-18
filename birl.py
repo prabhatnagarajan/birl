@@ -29,11 +29,11 @@ def PolicyWalk(mdp, step_size, iterations, r_max, demos):
 		# Step 3a - Pick a reward vector uniformly at random from the neighbors of R
 		mcmc_step(proposed_mdp, step_size, r_max)
 		#Step 3b - Compute Q for policy under new reward
-		Q = policy_evaluation(proposed_mdp, policy)
+		Q = proposed_mdp.policy_eval(policy)
 		# Step 3c
 		if post_orig is None:
 			print "computing log posterior"
-			post_orig = compute_log_posterior(mdp, demos, policy_evaluation(mdp, policy))
+			post_orig = compute_log_posterior(mdp, demos, mdp.policy_eval(policy))
 		#if policy is suboptimal then proceed to 3ci, 3cii, 3ciii
 		if suboptimal(policy, Q):
 			#3ci, do policy iteration under proposed reward function
@@ -114,7 +114,7 @@ def select_random_reward(mdp, step_size, r_max):
 		else:
 			rewards[i] = rewards[i] - mod
 	return rewards
-
+'''
 #TODO REMOVE from this file
 #Evaluates Q^pi(s,a, R)
 def policy_evaluation(mdp, policy):
@@ -132,9 +132,14 @@ def policy_evaluation(mdp, policy):
 					psas = mdp.transitions[s,a,next_state]
 					reward = mdp.rewards[next_state]
 					action = policy[next_state]
+					#print "next state is "
+					#print next_state
+					#print "policy is "
+					#print action
 					q_value = q[next_state, action]
 					q_sum = q_sum + psas * (reward + 0.99 * q_value)
 					#print policy
 				q[s,a] = q_sum
 				delta = max(delta, abs(q_val - q[s,a]))
 	return q
+'''

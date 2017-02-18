@@ -11,6 +11,7 @@ class MDP:
 	#Policy Iteration from Sutton and Barto
 	#assumes discount factor of 0.99
 	def policy_iteration(self, policy=None):
+		print "Enter Policy Iteration"
 		#initialization
 		if policy is None:
 			policy = np.zeros(np.shape(self.transitions)[0],dtype=np.int8)
@@ -19,18 +20,7 @@ class MDP:
 		policy_stable = False
 		while not policy_stable:
 			#policy evaluation
-			delta = float('inf')
-			while delta > 0.01:
-				delta = 0
-				#for each s in S
-				for s in range(np.shape(self.transitions)[0]):
-					#v = V(s)
-					v = value[s]
-					action = policy[s]
-					#V(s) = sum_s',r P(s',r|s pi(s))[r + YV(s')]
-					value[s] = np.sum(np.dot(self.transitions[s,action,:], np.add(self.rewards, np.dot(np.full(len(value),0.99), value))))
-					#value[s] = np.add(,np.dot(self.transitions(s,action,:), np.dot(np.full((len(value)), 0.99),value)))
-					delta = max(delta, abs(v - value[s]))
+
 
 			#policy improvement
 			policy_stable = True
@@ -47,8 +37,23 @@ class MDP:
 		print "returning"
 		return (policy, value)
 
+	'''
+	policy - deterministic policy, maps state to action
+	-Deterministic policy evaluation
+	'''
+	def policy_evaluation (self, policy):
+		print "Policy Evaluation"
+		V = np.zeros(np.shape(self.transitions)[0])
+		delta = 1
+		while delta > 0.01:
+			delta = 0
+			for state in range(len(V)):
+				value = V[state]
+				set_trace()
+				V[s] = np.dot(self.transitions[state,:,:], self.rewards + 0.99 * V)[policy[state]]
+				delta = max(delta, abs(value - V[state]))
 
-	#Evaluates Q^pi(s,a, R)
+	'''#Evaluates Q^pi(s,a, R)
 	def policy_evaluation(self, policy):
 		print "evaluating policy"
 		q = np.zeros(np.shape(self.transitions)[0:2])
@@ -70,7 +75,9 @@ class MDP:
 					delta = max(delta, abs(q_val - q[s,a]))
 					if np.isnan(delta):
 						print "NAN"
+		print "End policy evaluation"
 		return q
+	'''
 
 class MDPR:
 	def __init__(self, transitions):
