@@ -34,8 +34,7 @@ class MDP:
 				if not old_action == policy[state]:
 					diff_count += 1
 					policy_stable = False
-			print "Diff count is"
-			print diff_count
+			print "Diff count is " + str(diff_count)
 		print "policy is"
 		print policy
 		print "returning"
@@ -46,7 +45,6 @@ class MDP:
 	-Deterministic policy evaluation
 	'''
 	def policy_evaluation(self, policy):
-		print "Policy Evaluation"
 		V = np.zeros(np.shape(self.transitions)[0])
 		delta = 1
 		while delta > 0.01:
@@ -61,7 +59,6 @@ class MDP:
 		print "Evaluating Q"
 		V = self.policy_evaluation(policy)
 		Q = np.zeros(np.shape(self.transitions)[0:2])
-		print np.shape(Q)
 		return Q
 
 class MDPR:

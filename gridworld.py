@@ -283,6 +283,76 @@ class GridWorld:
 		pg.quit()
 		return (reward, demo, confidence)
 
+	def play(self, policy):
+		#list of recordings
+		demo = list()
+		pg.init()
+		self.screen = pg.display.set_mode((self.pixely, self.pixelx))
+		pg.display.set_caption("Gridworld")
+		#fill with white
+		done = False
+		block_size = 400/self.height
+		clock = pg.time.Clock()
+		#agent = self.agent
+			    # If you want a background image, replace this clear with blit'ing the
+	    # background image.
+		self.screen.fill(WHITE)
+		#starting state
+	 	state = self.start
+	    # --- Drawing code should go here
+		self.draw_agent(self.get_state_tuple(state))
+		self.draw_boxes()
+		self.draw_rewards()
+		pg.display.flip()
+		#add starting state to the demonstration
+		reward = 0.0
+		while not done:
+		    # --- Main event loop
+			for event in pg.event.get():
+				if event.type == pg.QUIT:
+					done = True
+					cont = False
+					break
+			
+			action_val = policy[state]
+ 
+		 	demo.append((state, action_val))
+
+		    # --- Game logic should go here
+			state = self.get_next_state(state, action_val)
+
+			#add action to demonstration
+
+		    # --- Screen-clearing code goes here
+		 
+		    # Here, we clear the screen to white. Don't put other drawing commands
+		    # above this, or they will be erased with this command.
+		 
+		    # If you want a background image, replace this clear with blit'ing the
+		    # background image.
+			self.screen.fill(WHITE)
+		 
+		    # --- Drawing code should go here
+			self.draw_agent(self.get_state_tuple(state))
+			self.draw_boxes()
+			self.draw_rewards()
+		    # --- Go ahead and update the screen with what we've drawn.
+			reward += self.mdp.rewards[state]
+			#add new state to demonstration
+			delay = 100
+			if state == self.goal:
+				delay = 1000
+				done = True
+
+			pg.display.flip()
+		    # --- Limit to 60 frames per second
+			clock.tick(60)
+			pg.time.delay(delay)
+			# wait
+		pg.quit()
+		return (reward, demo)
+
+
 	def record(self, num_episodes):
 		demos = list()
 		confidence = 400.0

@@ -62,7 +62,6 @@ def initialize_rewards(dims, num_states):
 
 if __name__ == '__main__':
 	transitions = initialize_gridworld(6, 6)
-	
 	mdp = MDP(transitions, initialize_rewards(5, 36))
 	#mdp = MDP(0, range(4), [35], 0.99, range(36), initialize_rewards(5, 36), transitions)
 	thing = GridWorld(mdp)
@@ -70,3 +69,7 @@ if __name__ == '__main__':
 	print demos
 	policy = birl(mdp, 0.02, 200, 1.0, demos)
 	print "Finished BIRL"
+	print "Agent Playing"
+	reward, playout = thing.play(policy)
+	print "Reward is " + str(reward)
+	print "Playout is " + str(playout)

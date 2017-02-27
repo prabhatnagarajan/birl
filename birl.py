@@ -11,6 +11,7 @@ def birl(mdp, step_size, iterations, r_max, demos):
 	final_mdp = PolicyWalk(mdp, step_size, iterations, r_max, demos)
 	#Optimal deterministic policy
 	optimal_policy = final_mdp.policy_iteration()[0]
+	return optimal_policy
 
 
 #probability distribution P, mdp M, step size delta, and perhaps a previous policy
