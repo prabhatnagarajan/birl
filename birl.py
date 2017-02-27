@@ -17,6 +17,7 @@ def birl(mdp, step_size, iterations, r_max, demos):
 #Returns : MDP with the learned reward function
 #MASSIVE ASSUMPTION: CURRENTLY ASSUMES A UNIFORM PRIOR
 def PolicyWalk(mdp, step_size, iterations, r_max, demos):
+	print "Select Random Reward Vector"
 	# Step 1 - Pick a random reward vector
 	mdp.rewards = select_random_reward(mdp, step_size, r_max)
 	# Step 2 - Policy Iteration
@@ -114,32 +115,3 @@ def select_random_reward(mdp, step_size, r_max):
 		else:
 			rewards[i] = rewards[i] - mod
 	return rewards
-'''
-#TODO REMOVE from this file
-#Evaluates Q^pi(s,a, R)
-def q_evaluation(mdp, policy):
-	print "evaluating policy"
-	print policy
-	q = np.zeros(np.shape(mdp.transitions)[0:2])
-	delta = float('inf')
-	while (delta > 0.01):
-		delta = 0
-		for s in range(np.shape(mdp.transitions)[0]):
-			for a in range(np.shape(mdp.transitions)[1]):
-				q_val = q[s,a]
-				q_sum = 0.0
-				for next_state in range(np.shape(mdp.transitions)[2]):
-					psas = mdp.transitions[s,a,next_state]
-					reward = mdp.rewards[next_state]
-					action = policy[next_state]
-					#print "next state is "
-					#print next_state
-					#print "policy is "
-					#print action
-					q_value = q[next_state, action]
-					q_sum = q_sum + psas * (reward + 0.99 * q_value)
-					#print policy
-				q[s,a] = q_sum
-				delta = max(delta, abs(q_val - q[s,a]))
-	return q
-'''

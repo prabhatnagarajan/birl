@@ -285,7 +285,7 @@ class GridWorld:
 
 	def record(self, num_episodes):
 		demos = list()
-		confidence = 1.0
+		confidence = 400.0
 		for i in range(num_episodes):
 			demo = self.record_demo(confidence)
 			demos.append(demo)
