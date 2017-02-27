@@ -2,7 +2,6 @@
 import gridworld
 from gridworld import GridWorld
 from mdp import MDP
-from mdp import MDPR
 import numpy as np
 from birl import *
 
@@ -61,9 +60,11 @@ def initialize_rewards(dims, num_states):
 
 if __name__ == '__main__':
 	transitions = initialize_gridworld(6, 6)
-	mdp = MDP(transitions, initialize_rewards(5, 36))
-	thing = GridWorld(mdp)
-	demos = thing.record(1)
-	print demos
-	policy = birl(mdp, 0.02, 200, 1.0, demos)
+	
+	#mdp = MDP(transitions, initialize_rewards(5, 36))
+	mdp = MDP(0, range(4), [35], 0.99, range(36), initialize_rewards(5, 36), transitions)
+	#thing = GridWorld(mdp)
+	#demos = thing.record(1)
+	#print demos
+	#policy = birl(mdp, 0.02, 200, 1.0, demos)
 	print "Finished BIRL"
