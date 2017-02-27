@@ -27,7 +27,7 @@ class MDP:
     list of (p, s') pairs.  We also keep track of the possible states,
     terminal states, and actions for each state. [page 646]"""
 
-    def __init__(self, init, actlist, terminals, gamma, states, rewards, transitions):
+    def __init__(self, init, actlist, terminals, gamma, states, reward, transitions):
         self.init = init
         self.actlist = actlist
         self.terminals = terminals
@@ -35,9 +35,14 @@ class MDP:
             raise ValueError("An MDP must have 0 <= gamma < 1")
         self.gamma = gamma
         self.states = states
-        self.rewards = rewards
+        self.reward = reward
         self.transitions = transitions
-
+        self.Transition = np.zeros(np.shape(transitions)[0:2])
+        for state in states:
+            for action in actlist:
+                self.Transition[state, action] = list()
+                for next_s in range(len(states)):
+                    Transition[state,action].append((self.transitions[state, action, next_s], next_s))
 
     def R(self, state):
         "Return a numeric reward for this state."
@@ -46,9 +51,7 @@ class MDP:
     def T(self, state, action):
         """Transition model.  From a state and an action, return a list
         of (probability, result-state) pairs."""
-        probs = list()
-        for s in range(len(states)):
-            probs.append((self.transitions[state, action, s], s))
+        return self.Transition[state, action]
 
     def actions(self, state):
         """Set of actions that can be performed in this state.  By default, a
