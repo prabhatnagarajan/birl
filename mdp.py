@@ -37,12 +37,15 @@ class MDP:
         self.states = states
         self.reward = reward
         self.transitions = transitions
-        self.Transition = np.zeros(np.shape(transitions)[0:2])
+        self.Transition = [[[(self.transitions[state, action, next_s], next_s) for next_s in states] for action in actlist] for state in states]
         for state in states:
             for action in actlist:
-                self.Transition[state, action] = list()
-                for next_s in range(len(states)):
-                    Transition[state,action].append((self.transitions[state, action, next_s], next_s))
+                sum_val = 0
+                for next_s in states:
+                    sum_val += self.Transition[state][action][next_s][0]
+                print sum_val
+                # print self.Transition[state][action]
+                # print ""
 
     def R(self, state):
         "Return a numeric reward for this state."
