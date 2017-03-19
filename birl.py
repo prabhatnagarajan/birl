@@ -4,11 +4,15 @@ from copy import deepcopy
 import random
 from scipy.misc import logsumexp
 from constants import *
+from prior import *
 
 #Demos is a dictionary of demonstration mapping to alpha (confidence)
 #step_size is the step size for MCMC
 #r_max is the maximum possible reward in the domain
-def birl(mdp, step_size, iterations, r_max, demos):
+def birl(mdp, step_size, iterations, r_max, demos, prior):
+	if not isinstance(prior, PriorDistribution):
+		print "Invalid Prior"
+		raise ValueError
 	final_mdp = PolicyWalk(mdp, step_size, iterations, r_max, demos)
 	#Optimal deterministic policy
 	optimal_policy = final_mdp.policy_iteration()[0]
@@ -43,7 +47,6 @@ def PolicyWalk(mdp, step_size, iterations, r_max, demos):
 			Take fraction of posterior probability of proposed reward and policy over 
 			posterior probability of original reward and policy
 			'''
-			print proposed_policy
 			post_new = compute_log_posterior(proposed_mdp, demos, proposed_mdp.policy_q_evaluation(proposed_policy))
 			fraction = np.exp(post_new - post_orig)
 			if (random.random() < min(1, fraction)):

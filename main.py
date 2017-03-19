@@ -5,6 +5,7 @@ from mdp import MDP
 import numpy as np
 from birl import *
 from constants import *
+from prior import *
 
 def initialize_gridworld(width, height):
 	# where 24 is a goal state that always transitions to a 
@@ -68,7 +69,7 @@ if __name__ == '__main__':
 	thing = GridWorld(mdp)
 	demos = thing.record(1)
 	print demos
-	policy = birl(mdp, 0.02, 200, 1.0, demos)
+	policy = birl(mdp, 0.02, 200, 1.0, demos, PriorDistribution.UNIFORM)
 	print "Finished BIRL"
 	print "Agent Playing"
 	reward, playout = thing.play(policy)
