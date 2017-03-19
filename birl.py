@@ -5,7 +5,7 @@ import random
 from scipy.misc import logsumexp
 from constants import *
 from prior import *
-
+from pdb import set_trace
 #Demos is a dictionary of demonstration mapping to alpha (confidence)
 #step_size is the step size for MCMC
 #r_max is the maximum possible reward in the domain
