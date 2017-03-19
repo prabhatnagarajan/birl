@@ -3,6 +3,7 @@ import numpy as np
 from copy import deepcopy
 import random
 from scipy.misc import logsumexp
+from constants import *
 
 #Demos is a dictionary of demonstration mapping to alpha (confidence)
 #step_size is the step size for MCMC
@@ -18,11 +19,12 @@ def birl(mdp, step_size, iterations, r_max, demos):
 #Returns : MDP with the learned reward function
 #MASSIVE ASSUMPTION: CURRENTLY ASSUMES A UNIFORM PRIOR
 def PolicyWalk(mdp, step_size, iterations, r_max, demos):
-	print "Select Random Reward Vector"
 	# Step 1 - Pick a random reward vector
 	mdp.rewards = select_random_reward(mdp, step_size, r_max)
 	# Step 2 - Policy Iteration
 	policy = mdp.policy_iteration()[0]
+	print "After policy iteration, the policy is"
+	print policy
 	#initialize an original posterior, will be useful later
 	post_orig = None
 	# Step 3
@@ -31,15 +33,15 @@ def PolicyWalk(mdp, step_size, iterations, r_max, demos):
 		# Step 3a - Pick a reward vector uniformly at random from the neighbors of R
 		mcmc_step(proposed_mdp, step_size, r_max)
 		#Step 3b - Compute Q for policy under new reward
-		Q = proposed_mdp.q_evaluation(policy)
+		Q = proposed_mdp.policy_q_evaluation(policy)
 		# Step 3c
 		if post_orig is None:
 			print "computing log posterior"
-			post_orig = compute_log_posterior(mdp, demos, mdp.q_evaluation(policy))
+			post_orig = compute_log_posterior(mdp, demos, mdp.policy_q_evaluation(policy))
 		#if policy is suboptimal then proceed to 3ci, 3cii, 3ciii
 		if suboptimal(policy, Q):
 			#3ci, do policy iteration under proposed reward function
-			proposed_policy = proposed_mdp.policy_iteration(policy=policy)
+			proposed_policy = proposed_mdp.policy_iteration(policy=policy)[0]
 			'''
 			Take fraction of posterior probability of proposed reward and policy over 
 			posterior probability of original reward and policy
@@ -47,7 +49,7 @@ def PolicyWalk(mdp, step_size, iterations, r_max, demos):
 			print "computing new posterior"
 			print proposed_policy
 			print "computing"
-			post_new = compute_log_posterior(proposed_mdp, demos, proposed_mdp.q_evaluation(proposed_policy[0]))
+			post_new = compute_log_posterior(proposed_mdp, demos, proposed_mdp.policy_q_evaluation(proposed_policy[0]))
 			print "done"
 			fraction = np.exp(post_new - post_orig)
 			if (random.random() < min(1, fraction)):
