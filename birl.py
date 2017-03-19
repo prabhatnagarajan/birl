@@ -23,8 +23,6 @@ def PolicyWalk(mdp, step_size, iterations, r_max, demos):
 	mdp.rewards = select_random_reward(mdp, step_size, r_max)
 	# Step 2 - Policy Iteration
 	policy = mdp.policy_iteration()[0]
-	print "After policy iteration, the policy is"
-	print policy
 	#initialize an original posterior, will be useful later
 	post_orig = None
 	# Step 3
@@ -36,7 +34,6 @@ def PolicyWalk(mdp, step_size, iterations, r_max, demos):
 		Q = proposed_mdp.policy_q_evaluation(policy)
 		# Step 3c
 		if post_orig is None:
-			print "computing log posterior"
 			post_orig = compute_log_posterior(mdp, demos, mdp.policy_q_evaluation(policy))
 		#if policy is suboptimal then proceed to 3ci, 3cii, 3ciii
 		if suboptimal(policy, Q):
@@ -46,11 +43,8 @@ def PolicyWalk(mdp, step_size, iterations, r_max, demos):
 			Take fraction of posterior probability of proposed reward and policy over 
 			posterior probability of original reward and policy
 			'''
-			print "computing new posterior"
 			print proposed_policy
-			print "computing"
-			post_new = compute_log_posterior(proposed_mdp, demos, proposed_mdp.policy_q_evaluation(proposed_policy[0]))
-			print "done"
+			post_new = compute_log_posterior(proposed_mdp, demos, proposed_mdp.policy_q_evaluation(proposed_policy))
 			fraction = np.exp(post_new - post_orig)
 			if (random.random() < min(1, fraction)):
 				mdp.rewards = proposed_mdp.rewards
