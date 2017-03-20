@@ -5,5 +5,4 @@ A Python Implementation of Bayesian Inverse Reinforcement Learning (BIRL)
 
 - Python 2.7
 - SciPy
-- pymdptoolbox
-
+- pymdptoolbox (https://media.readthedocs.org/pdf/pymdptoolbox/latest/pymdptoolbox.pdf)
