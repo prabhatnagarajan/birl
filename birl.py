@@ -2,6 +2,7 @@
 import numpy as np
 from copy import deepcopy
 import random
+import math
 from scipy.misc import logsumexp
 from constants import *
 from prior import *
@@ -13,16 +14,17 @@ def birl(mdp, step_size, iterations, r_max, demos, prior):
 	if not isinstance(prior, PriorDistribution):
 		print "Invalid Prior"
 		raise ValueError
-	final_mdp = PolicyWalk(mdp, step_size, iterations, r_max, demos)
+	final_mdp = PolicyWalk(mdp, step_size, iterations, r_max, demos, prior)
 	#Optimal deterministic policy
 	optimal_policy = final_mdp.policy_iteration()[0]
+	print optimal_policy
 	return optimal_policy
 
 
 #probability distribution P, mdp M, step size delta, and perhaps a previous policy
 #Returns : MDP with the learned reward function
 #MASSIVE ASSUMPTION: CURRENTLY ASSUMES A UNIFORM PRIOR
-def PolicyWalk(mdp, step_size, iterations, r_max, demos):
+def PolicyWalk(mdp, step_size, iterations, r_max, demos, prior):
 	# Step 1 - Pick a random reward vector
 	mdp.rewards = select_random_reward(mdp, step_size, r_max)
 	# Step 2 - Policy Iteration
@@ -38,7 +40,7 @@ def PolicyWalk(mdp, step_size, iterations, r_max, demos):
 		Q = proposed_mdp.policy_q_evaluation(policy)
 		# Step 3c
 		if post_orig is None:
-			post_orig = compute_log_posterior(mdp, demos, mdp.policy_q_evaluation(policy))
+			post_orig = compute_log_posterior(mdp, demos, mdp.policy_q_evaluation(policy), prior, r_max)
 		#if policy is suboptimal then proceed to 3ci, 3cii, 3ciii
 		if suboptimal(policy, Q):
 			#3ci, do policy iteration under proposed reward function
@@ -47,7 +49,7 @@ def PolicyWalk(mdp, step_size, iterations, r_max, demos):
 			Take fraction of posterior probability of proposed reward and policy over 
 			posterior probability of original reward and policy
 			'''
-			post_new = compute_log_posterior(proposed_mdp, demos, proposed_mdp.policy_q_evaluation(proposed_policy))
+			post_new = compute_log_posterior(proposed_mdp, demos, proposed_mdp.policy_q_evaluation(proposed_policy), prior, r_max)
 			fraction = np.exp(post_new - post_orig)
 			if (random.random() < min(1, fraction)):
 				mdp.rewards = proposed_mdp.rewards
@@ -58,7 +60,7 @@ def PolicyWalk(mdp, step_size, iterations, r_max, demos):
 			Take fraction of the posterior probability of proposed reward under original policy over
 			posterior probability of original reward and original policy
 			'''
-			post_new = compute_log_posterior(proposed_mdp, demos, Q)
+			post_new = compute_log_posterior(proposed_mdp, demos, Q, prior, r_max)
 			fraction = np.exp(post_new - post_orig)
 			if (random.random() < min(1, fraction)):
 				mdp.rewards = proposed_mdp.rewards
@@ -67,7 +69,7 @@ def PolicyWalk(mdp, step_size, iterations, r_max, demos):
 	return mdp
 
 #Demos comes in the form (actual reward, demo, confidence)
-def compute_log_posterior(mdp, demos, Q):
+def compute_log_posterior(mdp, demos, Q, prior, r_max):
 	log_exp_val = 0
 	#go through each demo
 	for d in range(len(demos)):
@@ -85,7 +87,13 @@ def compute_log_posterior(mdp, demos, Q):
 			instead of dividing because subtracting logs can be rewritten as division
 			'''
 			log_exp_val = log_exp_val + confidence * Q[sa[0], sa[1]] - logsumexp(normalizer)
-	return log_exp_val
+	#multiply by prior
+	return log_exp_val + compute_log_prior(prior, mdp, r_max)
+
+def compute_log_prior(prior, mdp, r_max):
+	if prior == PriorDistribution.UNIFORM:
+		return (- float(len(mdp.states))) * np.log(2 * r_max)
+
 
 def mcmc_step(mdp, step_size, r_max):
 	 index = random.randint(0, np.shape(mdp.transitions)[0] - 1)
