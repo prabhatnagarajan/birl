@@ -69,7 +69,7 @@ if __name__ == '__main__':
 	thing = GridWorld(mdp)
 	demos = thing.record(1)
 	print demos
-	policy = birl(mdp, 0.02, 200, 1.0, demos, PriorDistribution.UNIFORM)
+	policy = birl(mdp, 0.02, 1000, 1.0, demos, 500, 20, PriorDistribution.UNIFORM)
 	print "Finished BIRL"
 	print "Agent Playing"
 	reward, playout = thing.play(policy)

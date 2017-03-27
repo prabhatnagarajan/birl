@@ -10,21 +10,25 @@ from pdb import set_trace
 #Demos is a dictionary of demonstration mapping to alpha (confidence)
 #step_size is the step size for MCMC
 #r_max is the maximum possible reward in the domain
-def birl(mdp, step_size, iterations, r_max, demos, prior):
+def birl(mdp, step_size, iterations, r_max, demos, burn_in, sample_freq, prior):
 	if not isinstance(prior, PriorDistribution):
 		print "Invalid Prior"
 		raise ValueError
-	final_mdp = PolicyWalk(mdp, step_size, iterations, r_max, demos, prior)
+	reward_samples = PolicyWalk(mdp, step_size, iterations, burn_in, sample_freq, r_max, demos, prior)
+	mdp.rewards = np.mean(reward_samples)
+	print "Rewards are "
+	print mdp.rewards
 	#Optimal deterministic policy
-	optimal_policy = final_mdp.policy_iteration()[0]
-	print optimal_policy
+	print "computed mean rewards"
+	optimal_policy = mdp.policy_iteration()[0]
+	print "Done with policy Iteration"
 	return optimal_policy
 
 
 #probability distribution P, mdp M, step size delta, and perhaps a previous policy
-#Returns : MDP with the learned reward function
-#MASSIVE ASSUMPTION: CURRENTLY ASSUMES A UNIFORM PRIOR
-def PolicyWalk(mdp, step_size, iterations, r_max, demos, prior):
+#Returns : List of Sampled Rewards
+def PolicyWalk(mdp, step_size, iterations, burn_in, sample_freq, r_max, demos, prior):
+	reward_samples = []
 	# Step 1 - Pick a random reward vector
 	mdp.rewards = select_random_reward(mdp, step_size, r_max)
 	# Step 2 - Policy Iteration
@@ -65,8 +69,14 @@ def PolicyWalk(mdp, step_size, iterations, r_max, demos, prior):
 			if (random.random() < min(1, fraction)):
 				mdp.rewards = proposed_mdp.rewards
 				post_orig = post_new
-	#Step 4 - return the reward function (in our case, the MDP as well)
-	return mdp
+		print i
+		#Store samples
+		if i >= burn_in:
+			if i % sample_freq == 0:
+				print i
+				reward_samples.append(mdp.rewards)
+	#Step 4 - return the reward samples
+	return reward_samples
 
 #Demos comes in the form (actual reward, demo, confidence)
 def compute_log_posterior(mdp, demos, Q, prior, r_max):
