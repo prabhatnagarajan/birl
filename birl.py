@@ -15,11 +15,10 @@ def birl(mdp, step_size, iterations, r_max, demos, burn_in, sample_freq, prior):
 		print "Invalid Prior"
 		raise ValueError
 	reward_samples = PolicyWalk(mdp, step_size, iterations, burn_in, sample_freq, r_max, demos, prior)
-	mdp.rewards = np.mean(reward_samples)
+	mdp.rewards = np.mean(reward_samples, axis=0)
 	print "Rewards are "
 	print mdp.rewards
 	#Optimal deterministic policy
-	print "computed mean rewards"
 	optimal_policy = mdp.policy_iteration()[0]
 	print "Computed Optimal BIRL policy"
 	return optimal_policy
