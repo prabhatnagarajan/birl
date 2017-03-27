@@ -21,7 +21,7 @@ def birl(mdp, step_size, iterations, r_max, demos, burn_in, sample_freq, prior):
 	#Optimal deterministic policy
 	print "computed mean rewards"
 	optimal_policy = mdp.policy_iteration()[0]
-	print "Done with policy Iteration"
+	print "Computed Optimal BIRL policy"
 	return optimal_policy
 
 
