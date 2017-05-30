@@ -7,22 +7,6 @@ from scipy.misc import logsumexp
 from constants import *
 from prior import *
 from pdb import set_trace
-#Demos is a dictionary of demonstration mapping to alpha (confidence)
-#step_size is the step size for MCMC
-#r_max is the maximum possible reward in the domain
-def birl(mdp, step_size, iterations, r_max, demos, burn_in, sample_freq, prior):
-	if not isinstance(prior, PriorDistribution):
-		print "Invalid Prior"
-		raise ValueError
-	reward_samples = PolicyWalk(mdp, step_size, iterations, burn_in, sample_freq, r_max, demos, prior)
-	mdp.rewards = np.mean(reward_samples, axis=0)
-	print "Rewards are "
-	print mdp.rewards
-	#Optimal deterministic policy
-	optimal_policy = mdp.policy_iteration()[0]
-	print "Computed Optimal BIRL policy"
-	return optimal_policy
-
 
 #probability distribution P, mdp M, step size delta, and perhaps a previous policy
 #Returns : List of Sampled Rewards
