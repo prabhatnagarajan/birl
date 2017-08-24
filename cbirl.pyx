@@ -1,4 +1,4 @@
-cdef extern from "fib.c":
+cdef extern from "birl.c":
 	int fib(int n)
 
 def main():
