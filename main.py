@@ -6,6 +6,7 @@ import numpy as np
 from birl import *
 from constants import *
 from prior import *
+import cbirl
 
 def initialize_gridworld(width, height):
 	# where 24 is a goal state that always transitions to a 
@@ -63,6 +64,8 @@ def initialize_rewards(dims, num_states):
 	return rewards
 
 if __name__ == '__main__':
+	cbirl.main()
+	exit()
 	transitions = initialize_gridworld(6, 6)
 	mdp = MDP(transitions, initialize_rewards(5, 36), 0.99)
 	#mdp = MDP(0, range(4), [35], 0.99, range(36), initialize_rewards(5, 36), transitions)
