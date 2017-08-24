@@ -16,6 +16,6 @@ A Python Implementation of Bayesian Inverse Reinforcement Learning (BIRL)
 - http://cython.readthedocs.io/en/latest/src/tutorial/cython_tutorial.html
 - https://media.readthedocs.org/pdf/cython-docs2/stable/cython-docs2.pdf
 
-##Compilation
+## Compilation
 
 	python setup.py build_ext --inplace
