@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+import cbirl
 import numpy as np
 from copy import deepcopy
 import random
@@ -21,7 +21,7 @@ def birl(mdp, step_size, iterations, r_max, demos, burn_in, sample_freq, prior):
 	optimal_policy = mdp.policy_iteration()[0]
 	print "Computed Optimal BIRL policy"
 	return optimal_policy
-
+	
 #probability distribution P, mdp M, step size delta, and perhaps a previous policy
 #Returns : List of Sampled Rewards
 def PolicyWalk(mdp, step_size, iterations, burn_in, sample_freq, r_max, demos, prior):
@@ -121,6 +121,7 @@ def suboptimal(policy, Q):
 
 #Generates a random reward vector in the grid of reward vectors
 def select_random_reward(mdp, step_size, r_max):
+	# return cbirl.select_random_reward(mdp, step_size, r_max)
 	rewards = np.random.uniform(-r_max, r_max,np.shape(mdp.transitions)[0])
 	#move theese random rewards to a gridpoint
 	for i in range(len(rewards)):
