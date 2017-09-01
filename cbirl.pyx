@@ -1,5 +1,6 @@
 cdef extern from "birl.c":
 	int fib(int n)
+	double logsumexp(double* nums, unsigned int size)
 
 import numpy as np
 cimport cython
@@ -126,3 +127,31 @@ def policy_q_evaluation(mdp, policy):
 			action = action + 1
 		state = state + 1
 	return Q
+
+#Demos comes in the form (actual reward, demo, confidence)
+def compute_log_posterior(mdp, demos, Q, prior, r_max):
+	log_exp_val = 0
+	cdef unsigned int num_actions = len(mdp.actions)
+	cdef double* normalizer = <double*> malloc(sizeof(double) * num_actions)
+	#go through each demo
+	for d in range(len(demos)):
+		demo = demos[d][1]
+		confidence = demos[d][2]
+		#for each state action pair in the demo
+		for sa in demo:
+			# normalizer = []
+			#add to the list of normalization terms
+			for a in range(np.shape(mdp.transitions)[1]):
+				normalizer[a] = (confidence * Q[sa[0],a])
+			'''
+			We take the log of the normalizer, because we take exponent in the calling function,
+			which gets rid of the log, and leaves the sum of the exponents. Also, we subtract by the log
+			instead of dividing because subtracting logs can be rewritten as division
+			'''
+			log_exp_val = log_exp_val + confidence * Q[sa[0], sa[1]] - logsumexp(normalizer, num_actions)
+	#multiply by prior
+	free(normalizer)
+	return log_exp_val + compute_log_prior(mdp, r_max)
+
+def compute_log_prior(mdp, r_max):
+		return (- float(len(mdp.states))) * np.log(2 * r_max)

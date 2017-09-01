@@ -50,7 +50,7 @@ def PolicyWalk(mdp, step_size, iterations, burn_in, sample_freq, r_max, demos, p
 			Take fraction of posterior probability of proposed reward and policy over 
 			posterior probability of original reward and policy
 			'''
-			post_new = compute_log_posterior(proposed_mdp, demos, cbirl.policy_q_evaluation(proposed_mdp, proposed_policy), prior, r_max)
+			post_new = cbirl.compute_log_posterior(proposed_mdp, demos, cbirl.policy_q_evaluation(proposed_mdp, proposed_policy), prior, r_max)
 			fraction = np.exp(post_new - post_orig)
 			if (random.random() < min(1, fraction)):
 				mdp.rewards = proposed_mdp.rewards
@@ -61,7 +61,7 @@ def PolicyWalk(mdp, step_size, iterations, burn_in, sample_freq, r_max, demos, p
 			Take fraction of the posterior probability of proposed reward under original policy over
 			posterior probability of original reward and original policy
 			'''
-			post_new = compute_log_posterior(proposed_mdp, demos, Q, prior, r_max)
+			post_new = cbirl.compute_log_posterior(proposed_mdp, demos, Q, prior, r_max)
 			fraction = np.exp(post_new - post_orig)
 			if (random.random() < min(1, fraction)):
 				mdp.rewards = proposed_mdp.rewards
