@@ -111,8 +111,18 @@ def c_policy_eval(mdp, policy, DTYPE_t theta):
 
 def policy_q_evaluation(mdp, policy):
 	cdef np.ndarray[DTYPE_t, ndim=1] V = c_policy_eval(mdp, policy, 0.0001)
-	Q = np.zeros(np.shape(mdp.transitions)[0:2])
-	for state in mdp.states:
-		for action in mdp.actions:
-			Q[state,action] = np.dot(mdp.transitions[state, action], mdp.rewards + mdp.gamma * V)
+	cdef np.ndarray[DTYPE_t, ndim=2] Q = np.zeros(np.shape(mdp.transitions)[0:2])
+	cdef int num_states = len(mdp.states)
+	cdef int num_actions = len(mdp.actions)
+	cdef int state = 0
+	cdef int action = 0
+	cdef np.ndarray[DTYPE_t, ndim=1] rewards = mdp.rewards.astype(dtype=DTYPE)
+	cdef np.ndarray[DTYPE_t, ndim=3] transitions = mdp.transitions.astype(dtype=DTYPE)
+	cdef DTYPE_t gamma = mdp.gamma
+	while state < num_states:
+		action = 0
+		while action < num_actions:
+			Q[state, action] = np.dot(transitions[state, action], rewards + gamma * V)
+			action = action + 1
+		state = state + 1
 	return Q
