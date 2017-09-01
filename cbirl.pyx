@@ -3,6 +3,7 @@ cdef extern from "birl.c":
 
 import numpy as np
 cimport cython
+cimport numpy as np
 from libc.stdlib cimport malloc, free
 
 def main():
@@ -74,30 +75,32 @@ def c_policy_eval(mdp, policy, double theta):
 	cdef int num_actions = len(mdp.actions)
 	cdef int i,j,k = 0
 	cdef int state = 0
-	cdef double* V = <double*> malloc(sizeof(double)*num_states)
-	# cdef double V[num_states]
-	while i < num_states:
-		V[i] = 0
-		i = i + 1
-	i = 0
-	cdef int size = num_states * num_actions * num_states
-	cdef double* transitions = <double*> malloc(sizeof(double)*size)
-	# cdef double transitions[num_states, num_actions, num_states]
-	while i < num_states:
-		j = 0
-		while j < num_actions:
-			k = 0
-			while k < num_states:
-				transitions[i][j][k] = mdp.transitions[i, j, k]
-				k = k + 1
-			j = j + 1
-		i = i + 1
-	i = 0
-	cdef double delta, value
-	while True:
-		delta = 0
-		state = 0
-		while state < num_states:
-			value = V[state]
-			state = state + 1
-		return
+	# DTYPE = np.float64
+	# ctypedef np.float64_t DTYPE_t
+	# cdef V = np.zeros(len(mdp.states))
+	# # cdef double V[num_states]
+	# while i < num_states:
+	# 	V[i] = 0
+	# 	i = i + 1
+	# i = 0
+	# cdef int size = num_states * num_actions * num_states
+	# cdef double* transitions = <double*> malloc(sizeof(double)*size)
+	# # cdef double transitions[num_states, num_actions, num_states]
+	# while i < num_states:
+	# 	j = 0
+	# 	while j < num_actions:
+	# 		k = 0
+	# 		while k < num_states:
+	# 			transitions[i][j][k] = mdp.transitions[i, j, k]
+	# 			k = k + 1
+	# 		j = j + 1
+	# 	i = i + 1
+	# i = 0
+	# cdef double delta, value
+	# while True:
+	# 	delta = 0
+	# 	state = 0
+	# 	while state < num_states:
+	# 		value = V[state]
+	# 		state = state + 1
+	# 	return
