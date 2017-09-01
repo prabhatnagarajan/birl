@@ -38,10 +38,10 @@ def PolicyWalk(mdp, step_size, iterations, burn_in, sample_freq, r_max, demos, p
 		# Step 3a - Pick a reward vector uniformly at random from the neighbors of R
 		mcmc_step(proposed_mdp, step_size, r_max)
 		#Step 3b - Compute Q for policy under new reward
-		Q = proposed_mdp.policy_q_evaluation(policy)
+		Q = cbirl.policy_q_evaluation(proposed_mdp, policy)
 		# Step 3c
 		if post_orig is None:
-			post_orig = compute_log_posterior(mdp, demos, mdp.policy_q_evaluation(policy), prior, r_max)
+			post_orig = compute_log_posterior(mdp, demos, cbirl.policy_q_evaluation(mdp, policy), prior, r_max)
 		#if policy is suboptimal then proceed to 3ci, 3cii, 3ciii
 		if suboptimal(policy, Q):
 			#3ci, do policy iteration under proposed reward function
@@ -50,7 +50,7 @@ def PolicyWalk(mdp, step_size, iterations, burn_in, sample_freq, r_max, demos, p
 			Take fraction of posterior probability of proposed reward and policy over 
 			posterior probability of original reward and policy
 			'''
-			post_new = compute_log_posterior(proposed_mdp, demos, proposed_mdp.policy_q_evaluation(proposed_policy), prior, r_max)
+			post_new = compute_log_posterior(proposed_mdp, demos, cbirl.policy_q_evaluation(proposed_mdp, proposed_policy), prior, r_max)
 			fraction = np.exp(post_new - post_orig)
 			if (random.random() < min(1, fraction)):
 				mdp.rewards = proposed_mdp.rewards

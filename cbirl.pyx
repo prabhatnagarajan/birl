@@ -91,19 +91,28 @@ def c_policy_eval(mdp, policy, DTYPE_t theta):
 	cdef np.ndarray[DTYPE_t, ndim=1] rewards = mdp.rewards.astype(dtype=DTYPE)
 	cdef DTYPE_t gamma = mdp.gamma
 	cdef DTYPE_t delta = 0
+	cdef DTYPE_t max_value = mdp.max_value
 	while True:
 		delta = 0
 		state = 0
 		while state < num_states:
 			value = V[state]
-			V[state] = np.dot(transitions[state, pi[state],:], rewards + gamma * V)
+			V[state] = np.dot(transitions[state, pi[state]], rewards + gamma * V)
 			delta = max(delta, np.abs(value - V[state]))
 			#If divergence and policy has value -inf, return value function early
-			if V[state] > mdp.max_value:
+			if V[state] > max_value:
 				return V
-			if V[state] < -mdp.max_value:
+			if V[state] < -max_value:
 				return V
 			state = state + 1
 		if delta < theta:
 			break
 	return V
+
+def policy_q_evaluation(mdp, policy):
+	cdef np.ndarray[DTYPE_t, ndim=1] V = c_policy_eval(mdp, policy, 0.0001)
+	Q = np.zeros(np.shape(mdp.transitions)[0:2])
+	for state in mdp.states:
+		for action in mdp.actions:
+			Q[state,action] = np.dot(mdp.transitions[state, action], mdp.rewards + mdp.gamma * V)
+	return Q
