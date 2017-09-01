@@ -29,7 +29,7 @@ def PolicyWalk(mdp, step_size, iterations, burn_in, sample_freq, r_max, demos, p
 	# Step 1 - Pick a random reward vector
 	mdp.rewards = select_random_reward(mdp, step_size, r_max)
 	# Step 2 - Policy Iteration
-	policy = mdp.policy_iteration()[0]
+	policy = cbirl.policy_iteration(mdp)[0]
 	#initialize an original posterior, will be useful later
 	post_orig = None
 	# Step 3
@@ -45,7 +45,7 @@ def PolicyWalk(mdp, step_size, iterations, burn_in, sample_freq, r_max, demos, p
 		#if policy is suboptimal then proceed to 3ci, 3cii, 3ciii
 		if suboptimal(policy, Q):
 			#3ci, do policy iteration under proposed reward function
-			proposed_policy = proposed_mdp.policy_iteration(policy=policy)[0]
+			proposed_policy = cbirl.policy_iteration(proposed_mdp, policy=policy)[0]
 			'''
 			Take fraction of posterior probability of proposed reward and policy over 
 			posterior probability of original reward and policy
