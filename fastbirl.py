@@ -122,7 +122,7 @@ def suboptimal(policy, Q):
 #Generates a random reward vector in the grid of reward vectors
 def select_random_reward(mdp, step_size, r_max):
 	# return cbirl.select_random_reward(mdp, step_size, r_max)
-	rewards = np.random.uniform(-r_max, r_max,np.shape(mdp.transitions)[0])
+	rewards = np.random.uniform(-r_max, r_max, np.shape(mdp.transitions)[0])
 	#move theese random rewards to a gridpoint
 	for i in range(len(rewards)):
 		mod = rewards[i] % step_size

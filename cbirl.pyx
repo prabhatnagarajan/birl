@@ -6,9 +6,12 @@ cimport cython
 cimport numpy as np
 from libc.stdlib cimport malloc, free
 from pdb import set_trace
+from time import time
 
 DTYPE = np.float64
 ctypedef np.float64_t DTYPE_t
+DTYPEB = np.uint32
+ctypedef np.uint32_t DTYPEB_t
 
 def main():
 	print fib(5)
@@ -37,7 +40,8 @@ def policy_iteration(mdp, policy=None):
 	count = 0
 	while not policy_stable:
 		#policy evaluation
-		V = policy_evaluation(mdp, policy)
+		V = c_policy_eval(mdp, policy, 0.0001)
+		# V = policy_evaluation(mdp, policy)
 		count += 1
 		diff_count = 0
 		#policy improvement
@@ -76,21 +80,23 @@ def policy_evaluation(mdp, policy, theta=0.0001):
 			break
 	return V
 
-def c_policy_eval(mdp, policy, double theta):
+def c_policy_eval(mdp, policy, DTYPE_t theta):
 	cdef int num_states = len(mdp.states)
 	cdef int num_actions = len(mdp.actions)
 	cdef int i,j,k = 0
 	cdef int state = 0
-	cdef np.ndarray V = np.zeros(num_states, dtype=DTYPE)
-	cdef np.ndarray transitions = mdp.transitions
-	cdef np.ndarray pi = policy
-	cdef double delta = 0
+	cdef np.ndarray[DTYPE_t, ndim=1] V = np.zeros(num_states, dtype=DTYPE)
+	cdef np.ndarray[DTYPE_t, ndim=3] transitions = mdp.transitions.astype(dtype=DTYPE)
+	cdef np.ndarray[DTYPEB_t, ndim=1] pi = policy
+	cdef np.ndarray[DTYPE_t, ndim=1] rewards = mdp.rewards.astype(dtype=DTYPE)
+	cdef DTYPE_t gamma = mdp.gamma
+	cdef DTYPE_t delta = 0
 	while True:
 		delta = 0
 		state = 0
 		while state < num_states:
 			value = V[state]
-			V[state] = np.dot(transitions[state, pi[state],:], mdp.rewards + mdp.gamma * V)
+			V[state] = np.dot(transitions[state, pi[state],:], rewards + gamma * V)
 			delta = max(delta, np.abs(value - V[state]))
 			#If divergence and policy has value -inf, return value function early
 			if V[state] > mdp.max_value:
