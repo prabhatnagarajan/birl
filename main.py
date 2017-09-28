@@ -64,15 +64,11 @@ def initialize_rewards(dims, num_states):
 
 if __name__ == '__main__':
 	transitions = initialize_gridworld(6, 6)
-	# print "SHAPE IS"
-	# print transitions[5][2][4]
-	# exit()
 	mdp = MDP(transitions, initialize_rewards(5, 36), 0.99)
-	#mdp = MDP(0, range(4), [35], 0.99, range(36), initialize_rewards(5, 36), transitions)
 	thing = GridWorld(mdp)
 	demos = thing.record(1)
 	print demos
-	policy = fastbirl.birl(mdp, 0.02, 100, 1.0, demos, 50, 5, PriorDistribution.UNIFORM)
+	policy = birl(mdp, 0.02, 100, 1.0, demos, 50, 5, PriorDistribution.UNIFORM)
 	print "Finished BIRL"
 	print "Agent Playing"
 	reward, playout = thing.play(policy)
