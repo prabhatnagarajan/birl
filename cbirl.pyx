@@ -1,13 +1,16 @@
 cdef extern from "birl.c":
 	int fib(int n)
 	double logsumexp(double* nums, unsigned int size)
+	double* fast_policy_eval(double* V, double* transitions, int* pi, double* rewards, int num_states, int num_actions, double gamma, double theta, double max_value)
 
 import numpy as np
 cimport cython
 cimport numpy as np
+from cpython cimport array
 from libc.stdlib cimport malloc, free
 from pdb import set_trace
 from time import time
+import array
 
 DTYPE = np.float64
 ctypedef np.float64_t DTYPE_t
@@ -41,8 +44,8 @@ def policy_iteration(mdp, policy=None):
 	count = 0
 	while not policy_stable:
 		#policy evaluation
-		V = c_policy_eval(mdp, policy, 0.0001)
-		# V = policy_evaluation(mdp, policy)
+		# V = fast_eval(mdp, policy, 0.0001)
+		V = policy_evaluation(mdp, policy)
 		count += 1
 		diff_count = 0
 		#policy improvement
@@ -54,6 +57,7 @@ def policy_iteration(mdp, policy=None):
 			if not old_action == policy[state]:
 				diff_count += 1
 				policy_stable = False
+	print "RETURNING POLICY"
 	return (policy, V)
 
 '''
@@ -61,9 +65,9 @@ policy - deterministic policy, maps state to action
 - Deterministic policy evaluation
 '''
 def policy_evaluation(mdp, policy, theta=0.0001):
-	if True:
-		return c_policy_eval(mdp, policy, theta)
-	print "CALLED"
+	# if True:
+	# 	return fast_eval(mdp, policy, theta)
+	# print "CALLED"
 	V = np.zeros(len(mdp.states))
 	print V.dtype
 	while True:
@@ -80,6 +84,91 @@ def policy_evaluation(mdp, policy, theta=0.0001):
 		if delta < theta:
 			break
 	return V
+
+def fast_eval(mdp, policy, theta=0.0001):
+	cdef int num_states = len(mdp.states)
+	cdef int num_actions = len(mdp.actions)
+	cdef double theta_param = theta
+	cdef double max_value = mdp.max_value
+	cdef double gamma = mdp.gamma
+
+	cdef array.array pi = array.array('i', policy.tolist())
+	cdef array.array V = array.array('d', np.zeros(len(mdp.states)).tolist())
+	cdef array.array transitions = array.array('d', np.zeros(len(mdp.states) * len(mdp.states) * len(mdp.actions)).tolist())
+	cdef array.array rewards = array.array('d', mdp.rewards.tolist())
+
+	for state in mdp.states:
+		pi[state] = policy[state]
+		V[state] = 0
+		rewards[state] = mdp.rewards[state]
+		for action in mdp.actions:
+			for next_state in range(len(mdp.states)):
+				transitions[state * num_actions * num_states + action * num_states + next_state] = mdp.transitions[state, action, next_state]
+
+	cdef double * res = fast_policy_eval(V.data.as_doubles, transitions.data.as_doubles, pi.data.as_ints, rewards.data.as_doubles, 
+			num_states, num_actions,  gamma, theta_param, max_value)
+	result = np.zeros(len(mdp.states))
+	for state in mdp.states:
+		result[state] = res[state]
+	return result
+
+cdef scalar_mult(double scalar, double* vector, double* dest, int size):
+	cdef int i = 0
+	while (i < size):
+		dest[i] = scalar * vector[i]
+		i = i + 1
+	return dest;
+
+cdef vector_sum(double* vector1, double* vector2, double* dest, int size):
+	cdef int i = 0
+	while (i < size):
+		dest[i] = vector1[i] + vector2[i]
+		i = i + 1
+
+cdef fast_policy_evaluation(double * V, double * transitions, int * pi, double  * rewards, int num_states, int num_actions, double gamma, double theta, double max_value):
+	thing = np.zeros(50)
+	cdef int index
+	cdef int state = 0
+	cdef double delta = 0
+	cdef double * scalarMult =  <double *> malloc(num_states * sizeof(double))
+	cdef double* vectorSum = <double *> malloc(num_states * sizeof(double))
+	cdef double delta = 0.0
+	cdef int state = 0
+	cdef double value = 0
+	while(true):
+		delta = 0.0
+		state = 0
+		while (state < num_states):
+			value = V[state]
+			scalarMult(gamma, V, scalarMult, num_states)
+			vector_sum(rewards, scalarMult, vectorSum, num_states)
+			state = state + 1
+	# while(true) {
+	# 	delta = 0.0;
+	# 	for (state = 0; state < num_states; state++) {
+	# 		double value = V[state];
+	# 		scalar_mult(gamma, V, scalarMult, num_states);
+	# 		vector_sum(rewards, scalarMult, vectorSum, num_states);
+	# 		index = state * num_states * num_actions + pi[state] * num_states;
+	# 		V[state] = dot(transitions, index, vectorSum, num_states);
+	# 		delta = fmax(delta, abs(value - V[state]));
+	# 		if (V[state] > max_value) {
+	# 			free(scalarMult);
+	# 			free(vectorSum);
+	# 			return V;
+	# 		}
+	# 		if (V[state] < -max_value){
+	# 			free(scalarMult);
+	# 			free(vectorSum);
+	# 			return V;
+	# 		}
+	# 	}
+	# 	if (delta < theta) {
+	# 		break;
+	# 	}
+	return thing
+	#return V
+
 
 def c_policy_eval(mdp, policy, DTYPE_t theta):
 	cdef int num_states = len(mdp.states)

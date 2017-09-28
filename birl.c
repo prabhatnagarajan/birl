@@ -1,7 +1,9 @@
 #include <math.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 static double dot(double* vector1, int index, double* vector2, int size);
+double* fast_policy_eval(double V[], double transitions[], int pi[], double rewards[], int num_states, int num_actions, double gamma, double theta, double max_value);
 
 static int fib(int n)
 {
@@ -59,8 +61,8 @@ int prod(int* dims, int start, int end) {
 	return product;
 }
 
-void c_policy_eval(double* V, double dims[3], double* transitions, int* pi, double* rewards, int num_states, int num_actions, double gamma, double theta, double max_value) {
-	int i, j, k;
+double* fast_policy_eval(double V[], double transitions[], int pi[], double rewards[], int num_states, int num_actions, double gamma, double theta, double max_value) {
+	int index;
 	int state = 0;
 	double delta = 0;
 	double* scalarMult = malloc(sizeof(double) * num_states);
@@ -71,9 +73,9 @@ void c_policy_eval(double* V, double dims[3], double* transitions, int* pi, doub
 			double value = V[state];
 			scalar_mult(gamma, V, scalarMult, num_states);
 			vector_sum(rewards, scalarMult, vectorSum, num_states);
-			int index = 5;
+			index = state * num_states * num_actions + pi[state] * num_states;
 			V[state] = dot(transitions, index, vectorSum, num_states);
-			delta = max(delta, abs(value - V[state]));
+			delta = fmax(delta, abs(value - V[state]));
 			if (V[state] > max_value) {
 				free(scalarMult);
 				free(vectorSum);
