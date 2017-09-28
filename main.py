@@ -6,7 +6,6 @@ import numpy as np
 from birl import *
 from constants import *
 from prior import *
-import fastbirl
 
 def initialize_gridworld(width, height):
 	# where 24 is a goal state that always transitions to a 
