@@ -1,1 +1,0 @@
-static int fib(int n);
